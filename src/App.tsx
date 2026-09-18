@@ -7,17 +7,18 @@ import { GitTerminal } from './components/git-playground/GitTerminal'
 import { GitBranchList } from './components/git-playground/GitBranchList'
 import { GitFileTree } from './components/git-playground/GitFileTree'
 import { CommitDetailModal } from './components/git-playground/CommitDetailModal'
+import { ErrorDecoderView } from './components/error-decoder/ErrorDecoderView'
 import { useGitEngine } from './hooks/useGitEngine'
 import { GitCommit } from './types/git'
-import { Sparkles, RefreshCw, BookOpen, Compass, GitMerge, ArrowRight, Play } from 'lucide-react'
+import { Sparkles, RefreshCw, Compass, GitMerge, ArrowRight } from 'lucide-react'
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('git-sandbox')
   const [selectedCommit, setSelectedCommit] = useState<GitCommit | null>(null)
 
   // Gamification state
-  const [xp, setXp] = useState<number>(200)
-  const [streak] = useState<number>(3)
+  const [xp, setXp] = useState<number>(250)
+  const [streak] = useState<number>(4)
   const [unlockedBadgesCount] = useState<number>(1)
   const totalBadgesCount = 3
 
@@ -37,6 +38,11 @@ export const App: React.FC = () => {
       setXp((prev) => prev + 10)
     }
     return res
+  }
+
+  const handleTryInSandbox = (cmd: string) => {
+    setActiveTab('git-sandbox')
+    handleCommandWithXp(cmd)
   }
 
   return (
@@ -134,22 +140,7 @@ export const App: React.FC = () => {
         )}
 
         {activeTab === 'error-decoder' && (
-          <div className="glass-panel rounded-2xl p-8 text-center min-h-[450px] flex flex-col items-center justify-center">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-4 shadow-lg shadow-amber-500/10">
-              <BookOpen className="w-7 h-7" />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">16-Error Emergency Rescue Matrix</h3>
-            <p className="text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
-              Coming up in Phase 4: Paste terrifying terminal errors to receive instant, plain-English root causes and 1-click copyable solutions.
-            </p>
-            <button
-              onClick={() => setActiveTab('git-sandbox')}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold transition shadow-md shadow-cyan-500/20"
-            >
-              <span>Explore Visual Git Sandbox</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          <ErrorDecoderView onExecuteInSandbox={handleTryInSandbox} />
         )}
 
         {activeTab === 'guided-missions' && (
