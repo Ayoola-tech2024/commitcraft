@@ -2,17 +2,45 @@ import React, { useState } from 'react'
 import { Header } from './components/layout/Header'
 import { Navigation, TabType } from './components/layout/Navigation'
 import { Footer } from './components/layout/Footer'
-import { Sparkles, Terminal, BookOpen, GitPullRequest, ArrowRight } from 'lucide-react'
+import { GitGraph } from './components/git-playground/GitGraph'
+import { GitTerminal } from './components/git-playground/GitTerminal'
+import { GitBranchList } from './components/git-playground/GitBranchList'
+import { GitFileTree } from './components/git-playground/GitFileTree'
+import { CommitDetailModal } from './components/git-playground/CommitDetailModal'
+import { useGitEngine } from './hooks/useGitEngine'
+import { GitCommit } from './types/git'
+import { Sparkles, RefreshCw, BookOpen, Compass, GitMerge, ArrowRight, Play } from 'lucide-react'
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('git-sandbox')
-  const [xp] = useState<number>(150)
+  const [selectedCommit, setSelectedCommit] = useState<GitCommit | null>(null)
+
+  // Gamification state
+  const [xp, setXp] = useState<number>(200)
   const [streak] = useState<number>(3)
   const [unlockedBadgesCount] = useState<number>(1)
   const totalBadgesCount = 3
 
+  // Git State Machine Engine
+  const {
+    gitState,
+    executeCommand,
+    loadTemplate,
+    createBranch,
+    checkout,
+    stage,
+  } = useGitEngine()
+
+  const handleCommandWithXp = (cmd: string) => {
+    const res = executeCommand(cmd)
+    if (res.success) {
+      setXp((prev) => prev + 10)
+    }
+    return res
+  }
+
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 bg-dot-grid">
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 bg-dot-grid selection:bg-cyan-500/30 selection:text-cyan-200">
       {/* Header */}
       <Header
         xp={xp}
@@ -25,56 +53,81 @@ export const App: React.FC = () => {
       <Navigation activeTab={activeTab} onSelectTab={setActiveTab} />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-4 space-y-6">
         {activeTab === 'git-sandbox' && (
           <div className="space-y-6">
-            {/* Hero Banner for Git Sandbox */}
-            <div className="relative overflow-hidden rounded-2xl p-6 sm:p-8 bg-gradient-to-br from-slate-900 via-slate-900/90 to-cyan-950/40 border border-slate-800 shadow-2xl">
-              <div className="relative z-10 max-w-3xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold mb-3">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Phase 1 Active: Foundation Shell</span>
+            {/* Hero Quick Banner */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-cyan-950/40 border border-slate-800 shadow-xl">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                    <Sparkles className="w-3 h-3" />
+                    Interactive DAG Visualizer
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono">
+                    Branch: <strong className="text-cyan-300">{gitState.currentBranch}</strong>
+                  </span>
                 </div>
-                <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white mb-2">
-                  See Git. Understand Git. Never Panic.
+                <h2 className="text-xl sm:text-2xl font-extrabold text-white">
+                  Visual Git Playground
                 </h2>
-                <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                  Type real Git commands or click interactive action pills. Watch your branches, commits, and HEAD pointers update dynamically on an animated vector graph.
+                <p className="text-xs sm:text-sm text-slate-400 max-w-2xl mt-0.5">
+                  Click any commit node on the SVG graph to inspect its metadata. Run commands or shortcut pills to see the tree grow in real-time!
                 </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => loadTemplate('starter')}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Reset Sandbox</span>
+                </button>
               </div>
             </div>
 
-            {/* Placeholder Container ready for Phase 2 & 3 */}
+            {/* 1. Animated SVG Git Graph (Primary Visual Stage) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between px-1 text-xs text-slate-400 font-medium">
+                <span>Interactive Commit & Branch Graph (Click node for details)</span>
+                <span className="font-mono text-[11px] text-cyan-400">
+                  {Object.keys(gitState.commits).length} commits • {Object.keys(gitState.branches).length} branches
+                </span>
+              </div>
+              <GitGraph
+                gitState={gitState}
+                onSelectCommit={(c) => setSelectedCommit(c)}
+                selectedCommitId={selectedCommit?.id}
+              />
+            </div>
+
+            {/* 2. Interactive Terminal & Side Inspector Controls */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 glass-panel rounded-2xl p-6 min-h-[420px] flex flex-col items-center justify-center text-center border-dashed border-slate-800">
-                <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-4 shadow-lg shadow-cyan-500/10">
-                  <GitPullRequest className="w-7 h-7" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-1">Visual Graph Canvas Ready</h3>
-                <p className="text-xs text-slate-400 max-w-md mb-4">
-                  Phase 1 foundation is cleanly wired up. Phase 2 (Git State Machine) and Phase 3 (Animated SVG Graph) will plug right into this viewport.
-                </p>
-                <div className="flex gap-2 text-xs text-slate-400">
-                  <span className="px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700">SVG Engine</span>
-                  <span className="px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700">Framer Motion</span>
-                  <span className="px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700">DAG State</span>
-                </div>
+              {/* Terminal (2 Cols) */}
+              <div className="lg:col-span-2">
+                <GitTerminal
+                  history={gitState.history}
+                  currentBranch={gitState.currentBranch}
+                  onExecuteCommand={handleCommandWithXp}
+                  onLoadTemplate={loadTemplate}
+                />
               </div>
 
-              <div className="glass-panel rounded-2xl p-6 min-h-[420px] flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 text-sm font-bold text-slate-200 mb-3">
-                    <Terminal className="w-4 h-4 text-cyan-400" />
-                    <span>Interactive Command Terminal</span>
-                  </div>
-                  <p className="text-xs text-slate-400 mb-4">
-                    Ready for live command dispatching and branch inspection.
-                  </p>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 font-mono text-xs text-slate-400 flex items-center justify-between">
-                  <span>$ git status</span>
-                  <span className="text-emerald-400">Phase 1 Online</span>
-                </div>
+              {/* Side Panels: Branches + Staging Area (1 Col) */}
+              <div className="space-y-4">
+                <GitBranchList
+                  branches={gitState.branches}
+                  currentBranch={gitState.currentBranch}
+                  onSwitchBranch={(b) => checkout(b)}
+                  onCreateBranch={(b) => createBranch(b)}
+                />
+
+                <GitFileTree
+                  stagedFiles={gitState.stagedFiles}
+                  unstagedFiles={gitState.unstagedFiles}
+                  onStageFile={(f) => stage(f)}
+                />
               </div>
             </div>
           </div>
@@ -82,18 +135,18 @@ export const App: React.FC = () => {
 
         {activeTab === 'error-decoder' && (
           <div className="glass-panel rounded-2xl p-8 text-center min-h-[450px] flex flex-col items-center justify-center">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-4 shadow-lg shadow-amber-500/10">
               <BookOpen className="w-7 h-7" />
             </div>
             <h3 className="text-xl font-bold text-white mb-2">16-Error Emergency Rescue Matrix</h3>
-            <p className="text-sm text-slate-400 max-w-md mb-6">
-              Paste terrifying terminal errors to receive instant, plain-English root causes and 1-click copyable solutions.
+            <p className="text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
+              Coming up in Phase 4: Paste terrifying terminal errors to receive instant, plain-English root causes and 1-click copyable solutions.
             </p>
             <button
               onClick={() => setActiveTab('git-sandbox')}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold transition shadow-md shadow-cyan-500/20"
             >
-              <span>Back to Sandbox</span>
+              <span>Explore Visual Git Sandbox</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -101,22 +154,46 @@ export const App: React.FC = () => {
 
         {activeTab === 'guided-missions' && (
           <div className="glass-panel rounded-2xl p-8 text-center min-h-[450px] flex flex-col items-center justify-center">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4 shadow-lg shadow-emerald-500/10">
+              <Compass className="w-7 h-7" />
+            </div>
             <h3 className="text-xl font-bold text-white mb-2">3 Guided Beginner Missions</h3>
-            <p className="text-sm text-slate-400 max-w-md">
-              Interactive quest progression with unlockable badges and confetti rewards.
+            <p className="text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
+              Coming up in Phase 5: Step-by-step interactive missions to practice commits, branching, and safe merges with unlockable badges.
             </p>
+            <button
+              onClick={() => setActiveTab('git-sandbox')}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition"
+            >
+              <span>Back to Sandbox</span>
+            </button>
           </div>
         )}
 
         {activeTab === 'conflict-lab' && (
           <div className="glass-panel rounded-2xl p-8 text-center min-h-[450px] flex flex-col items-center justify-center">
+            <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-4 shadow-lg shadow-purple-500/10">
+              <GitMerge className="w-7 h-7" />
+            </div>
             <h3 className="text-xl font-bold text-white mb-2">Interactive Merge Conflict Sandbox</h3>
-            <p className="text-sm text-slate-400 max-w-md">
-              Visual 3-way split comparison to master merge conflict resolutions.
+            <p className="text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
+              Coming up in Phase 6: Hands-on 3-way split comparison to master merge conflict resolution visually.
             </p>
+            <button
+              onClick={() => setActiveTab('git-sandbox')}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition"
+            >
+              <span>Back to Sandbox</span>
+            </button>
           </div>
         )}
       </main>
+
+      {/* Commit Detail Modal */}
+      <CommitDetailModal
+        commit={selectedCommit}
+        onClose={() => setSelectedCommit(null)}
+      />
 
       {/* Footer */}
       <Footer />
