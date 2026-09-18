@@ -9,11 +9,12 @@ import { GitFileTree } from './components/git-playground/GitFileTree'
 import { CommitDetailModal } from './components/git-playground/CommitDetailModal'
 import { ErrorDecoderView } from './components/error-decoder/ErrorDecoderView'
 import { MissionsView } from './components/missions/MissionsView'
+import { ConflictLabView } from './components/conflict-lab/ConflictLabView'
 import { useGitEngine } from './hooks/useGitEngine'
 import { useProgress } from './hooks/useProgress'
 import { GitCommit } from './types/git'
 import { MISSIONS_DATA } from './data/missionsData'
-import { Sparkles, RefreshCw, GitMerge } from 'lucide-react'
+import { Sparkles, RefreshCw } from 'lucide-react'
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('git-sandbox')
@@ -162,21 +163,7 @@ export const App: React.FC = () => {
         )}
 
         {activeTab === 'conflict-lab' && (
-          <div className="glass-panel rounded-2xl p-8 text-center min-h-[450px] flex flex-col items-center justify-center">
-            <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-4 shadow-lg shadow-purple-500/10">
-              <GitMerge className="w-7 h-7" />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">Interactive Merge Conflict Sandbox</h3>
-            <p className="text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
-              Coming up in Phase 6: Hands-on 3-way split comparison to master merge conflict resolution visually.
-            </p>
-            <button
-              onClick={() => setActiveTab('git-sandbox')}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition"
-            >
-              <span>Back to Sandbox</span>
-            </button>
-          </div>
+          <ConflictLabView onGainXp={(amount) => addXp(amount)} />
         )}
       </main>
 
