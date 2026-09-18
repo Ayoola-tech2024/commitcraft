@@ -7,11 +7,13 @@ import { GitTerminal } from './components/git-playground/GitTerminal'
 import { GitBranchList } from './components/git-playground/GitBranchList'
 import { GitFileTree } from './components/git-playground/GitFileTree'
 import { CommitDetailModal } from './components/git-playground/CommitDetailModal'
+import { ShortcutsHelpModal } from './components/layout/ShortcutsHelpModal'
 import { ErrorDecoderView } from './components/error-decoder/ErrorDecoderView'
 import { MissionsView } from './components/missions/MissionsView'
 import { ConflictLabView } from './components/conflict-lab/ConflictLabView'
 import { useGitEngine } from './hooks/useGitEngine'
 import { useProgress } from './hooks/useProgress'
+import { sound } from './utils/soundEffects'
 import { GitCommit } from './types/git'
 import { MISSIONS_DATA } from './data/missionsData'
 import { Sparkles, RefreshCw } from 'lucide-react'
@@ -19,6 +21,7 @@ import { Sparkles, RefreshCw } from 'lucide-react'
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('git-sandbox')
   const [selectedCommit, setSelectedCommit] = useState<GitCommit | null>(null)
+  const [isHelpOpen, setIsHelpOpen] = useState(false)
 
   // Gamification & Persistent Progress Engine
   const {
@@ -39,6 +42,7 @@ export const App: React.FC = () => {
   } = useGitEngine()
 
   const handleCommandWithXp = (cmd: string) => {
+    sound.playClick()
     const res = executeCommand(cmd)
     if (res.success) {
       addXp(15)
@@ -46,7 +50,13 @@ export const App: React.FC = () => {
     return res
   }
 
+  const handleTabChange = (tab: TabType) => {
+    sound.playClick()
+    setActiveTab(tab)
+  }
+
   const handleTryInSandbox = (cmd: string) => {
+    sound.playClick()
     setActiveTab('git-sandbox')
     handleCommandWithXp(cmd)
   }
@@ -59,10 +69,11 @@ export const App: React.FC = () => {
         streak={progress.commandStreak}
         unlockedBadgesCount={progress.unlockedBadgeIds.length}
         totalBadgesCount={MISSIONS_DATA.length}
+        onOpenHelp={() => setIsHelpOpen(true)}
       />
 
       {/* Navigation Tabs */}
-      <Navigation activeTab={activeTab} onSelectTab={setActiveTab} />
+      <Navigation activeTab={activeTab} onSelectTab={handleTabChange} />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-4 space-y-6">
@@ -90,7 +101,10 @@ export const App: React.FC = () => {
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => loadTemplate('starter')}
+                  onClick={() => {
+                    sound.playClick()
+                    loadTemplate('starter')
+                  }}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition"
                 >
                   <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
@@ -109,7 +123,10 @@ export const App: React.FC = () => {
               </div>
               <GitGraph
                 gitState={gitState}
-                onSelectCommit={(c) => setSelectedCommit(c)}
+                onSelectCommit={(c) => {
+                  sound.playClick()
+                  setSelectedCommit(c)
+                }}
                 selectedCommitId={selectedCommit?.id}
               />
             </div>
@@ -122,7 +139,10 @@ export const App: React.FC = () => {
                   history={gitState.history}
                   currentBranch={gitState.currentBranch}
                   onExecuteCommand={handleCommandWithXp}
-                  onLoadTemplate={loadTemplate}
+                  onLoadTemplate={(tpl) => {
+                    sound.playClick()
+                    loadTemplate(tpl)
+                  }}
                 />
               </div>
 
@@ -131,14 +151,23 @@ export const App: React.FC = () => {
                 <GitBranchList
                   branches={gitState.branches}
                   currentBranch={gitState.currentBranch}
-                  onSwitchBranch={(b) => checkout(b)}
-                  onCreateBranch={(b) => createBranch(b)}
+                  onSwitchBranch={(b) => {
+                    sound.playClick()
+                    checkout(b)
+                  }}
+                  onCreateBranch={(b) => {
+                    sound.playClick()
+                    createBranch(b)
+                  }}
                 />
 
                 <GitFileTree
                   stagedFiles={gitState.stagedFiles}
                   unstagedFiles={gitState.unstagedFiles}
-                  onStageFile={(f) => stage(f)}
+                  onStageFile={(f) => {
+                    sound.playClick()
+                    stage(f)
+                  }}
                 />
               </div>
             </div>
@@ -155,7 +184,10 @@ export const App: React.FC = () => {
             completedMissionIds={progress.completedMissionIds}
             completedStepIds={progress.completedStepIds}
             onCompleteStep={completeStep}
-            onCompleteMission={completeMission}
+            onCompleteMission={(mId, bId, xp) => {
+              sound.playSuccess()
+              completeMission(mId, bId, xp)
+            }}
             onExecuteCommand={handleCommandWithXp}
             currentBranch={gitState.currentBranch}
             history={gitState.history}
@@ -163,7 +195,10 @@ export const App: React.FC = () => {
         )}
 
         {activeTab === 'conflict-lab' && (
-          <ConflictLabView onGainXp={(amount) => addXp(amount)} />
+          <ConflictLabView onGainXp={(amount) => {
+            sound.playSuccess()
+            addXp(amount)
+          }} />
         )}
       </main>
 
@@ -171,6 +206,12 @@ export const App: React.FC = () => {
       <CommitDetailModal
         commit={selectedCommit}
         onClose={() => setSelectedCommit(null)}
+      />
+
+      {/* Shortcuts & Guide Modal */}
+      <ShortcutsHelpModal
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
       />
 
       {/* Footer */}
