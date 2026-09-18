@@ -8,19 +8,24 @@ import { GitBranchList } from './components/git-playground/GitBranchList'
 import { GitFileTree } from './components/git-playground/GitFileTree'
 import { CommitDetailModal } from './components/git-playground/CommitDetailModal'
 import { ErrorDecoderView } from './components/error-decoder/ErrorDecoderView'
+import { MissionsView } from './components/missions/MissionsView'
 import { useGitEngine } from './hooks/useGitEngine'
+import { useProgress } from './hooks/useProgress'
 import { GitCommit } from './types/git'
-import { Sparkles, RefreshCw, Compass, GitMerge, ArrowRight } from 'lucide-react'
+import { MISSIONS_DATA } from './data/missionsData'
+import { Sparkles, RefreshCw, GitMerge } from 'lucide-react'
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('git-sandbox')
   const [selectedCommit, setSelectedCommit] = useState<GitCommit | null>(null)
 
-  // Gamification state
-  const [xp, setXp] = useState<number>(250)
-  const [streak] = useState<number>(4)
-  const [unlockedBadgesCount] = useState<number>(1)
-  const totalBadgesCount = 3
+  // Gamification & Persistent Progress Engine
+  const {
+    progress,
+    addXp,
+    completeStep,
+    completeMission,
+  } = useProgress()
 
   // Git State Machine Engine
   const {
@@ -35,7 +40,7 @@ export const App: React.FC = () => {
   const handleCommandWithXp = (cmd: string) => {
     const res = executeCommand(cmd)
     if (res.success) {
-      setXp((prev) => prev + 10)
+      addXp(15)
     }
     return res
   }
@@ -49,10 +54,10 @@ export const App: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 bg-dot-grid selection:bg-cyan-500/30 selection:text-cyan-200">
       {/* Header */}
       <Header
-        xp={xp}
-        streak={streak}
-        unlockedBadgesCount={unlockedBadgesCount}
-        totalBadgesCount={totalBadgesCount}
+        xp={progress.xp}
+        streak={progress.commandStreak}
+        unlockedBadgesCount={progress.unlockedBadgeIds.length}
+        totalBadgesCount={MISSIONS_DATA.length}
       />
 
       {/* Navigation Tabs */}
@@ -144,21 +149,16 @@ export const App: React.FC = () => {
         )}
 
         {activeTab === 'guided-missions' && (
-          <div className="glass-panel rounded-2xl p-8 text-center min-h-[450px] flex flex-col items-center justify-center">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4 shadow-lg shadow-emerald-500/10">
-              <Compass className="w-7 h-7" />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">3 Guided Beginner Missions</h3>
-            <p className="text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
-              Coming up in Phase 5: Step-by-step interactive missions to practice commits, branching, and safe merges with unlockable badges.
-            </p>
-            <button
-              onClick={() => setActiveTab('git-sandbox')}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition"
-            >
-              <span>Back to Sandbox</span>
-            </button>
-          </div>
+          <MissionsView
+            unlockedBadgeIds={progress.unlockedBadgeIds}
+            completedMissionIds={progress.completedMissionIds}
+            completedStepIds={progress.completedStepIds}
+            onCompleteStep={completeStep}
+            onCompleteMission={completeMission}
+            onExecuteCommand={handleCommandWithXp}
+            currentBranch={gitState.currentBranch}
+            history={gitState.history}
+          />
         )}
 
         {activeTab === 'conflict-lab' && (
