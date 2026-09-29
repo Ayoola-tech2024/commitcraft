@@ -6,6 +6,7 @@
 
 **The Interactive Visual Git Sandbox, 16-Error Emergency Rescue Matrix & Guided Quest Platform for Beginner Developers.**
 
+[![YouTube Video Walkthrough](https://img.shields.io/badge/YouTube-Video_Walkthrough-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/WwEqhrtGF2Q)
 [![FirstCommit Hackathon](https://img.shields.io/badge/Devpost-FirstCommit_Hackathon-00e5ff?style=for-the-badge&logo=devpost)](https://firstcommit.devpost.com/)
 [![React](https://img.shields.io/badge/React_18-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript_5-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -13,7 +14,7 @@
 [![Framer Motion](https://img.shields.io/badge/Framer_Motion_12-black?style=for-the-badge&logo=framer&logoColor=blue)](https://www.framer.com/motion/)
 [![Vite](https://img.shields.io/badge/Vite_6-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 
-[🚀 Live Interactive Demo](https://commitcraft.pages.dev/) • [🎬 Watch Live Demo Video (Loom)](https://www.loom.com/share/0bd12d9289fb46dd9e52ddd41ed3a409) • [📖 AI Disclosure](#-ai-usage-disclosure)
+[🚀 Live Interactive Demo](https://commitcraft.pages.dev/) • [🎬 Watch YouTube Demo Walkthrough](https://youtu.be/WwEqhrtGF2Q) • [📖 AI Disclosure](#-ai-usage-disclosure)
 
 ---
 
