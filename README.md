@@ -13,7 +13,7 @@
 [![Framer Motion](https://img.shields.io/badge/Framer_Motion_12-black?style=for-the-badge&logo=framer&logoColor=blue)](https://www.framer.com/motion/)
 [![Vite](https://img.shields.io/badge/Vite_6-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 
-[🚀 Live Interactive Demo](https://commitcraft.pages.dev/) • [🎬 3-Minute Video Script](#-3-minute-video-demo-script) • [📖 AI Disclosure](#-ai-usage-disclosure)
+[🚀 Live Interactive Demo](https://commitcraft.pages.dev/) • [🎬 Watch Live Demo Video (Loom)](https://www.loom.com/share/0bd12d9289fb46dd9e52ddd41ed3a409) • [📖 AI Disclosure](#-ai-usage-disclosure)
 
 ---
 
